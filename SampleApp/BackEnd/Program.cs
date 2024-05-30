@@ -34,9 +34,32 @@ app.MapGet("/weatherforecast", () =>
 .WithName("GetWeatherForecast")
 .WithOpenApi();
 
+// New endpoint to search weather data by city
+app.MapGet("/weatherforecast/city", (string city) =>
+{
+    var forecastByCity = Enumerable.Range(1, 5).Select(index =>
+        new WeatherForecastByCity
+        (
+            city,
+            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
+            Random.Shared.Next(-20, 55),
+            summaries[Random.Shared.Next(summaries.Length)]
+        ))
+        .ToArray();
+    return forecastByCity;
+})
+.WithName("GetWeatherForecastByCity")
+.WithOpenApi();
+
 app.Run();
 
 internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+{
+    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+}
+
+// New record to include city information in weather forecast
+internal record WeatherForecastByCity(string City, DateOnly Date, int TemperatureC, string? Summary)
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
