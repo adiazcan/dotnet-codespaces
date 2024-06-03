@@ -19,24 +19,42 @@ var summaries = new[]
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 };
 
-app.MapGet("/weatherforecast", () =>
+app.MapGet("/weatherforecast", (string? city) =>
 {
     var forecast = Enumerable.Range(1, 5).Select(index =>
         new WeatherForecast
         (
             DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
             Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
+            summaries[Random.Shared.Next(summaries.Length)],
+            city ?? "Unknown"
         ))
+        .Where(f => city == null || f.City == city)
         .ToArray();
     return forecast;
 })
 .WithName("GetWeatherForecast")
 .WithOpenApi();
 
+app.MapGet("/weatherforecast/city", (string city) =>
+{
+    var forecast = Enumerable.Range(1, 5).Select(index =>
+        new WeatherForecast
+        (
+            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
+            Random.Shared.Next(-20, 55),
+            summaries[Random.Shared.Next(summaries.Length)],
+            city
+        ))
+        .ToArray();
+    return forecast;
+})
+.WithName("GetWeatherForecastByCity")
+.WithOpenApi();
+
 app.Run();
 
-internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary, string City)
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
